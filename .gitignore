@@ -1,0 +1,6 @@
+# Materiale di Cuphead (© Studio MDHR): si rigenera con ./estrai_asset.sh dalla propria copia
+assets/
+tools/il/
+shots/
+.venv/
+__pycache__/

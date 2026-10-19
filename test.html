@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Goopy test render</title>
+<style>
+  @font-face { font-family: "CupheadVogue"; src: url("assets/fonts/CupheadVogue_ExtraBold_merged.ttf") format("truetype"); }
+  html, body { margin: 0; background: #000; } canvas { display: block; } img { display: none; }
+  .fontprobe { font-family: CupheadVogue; position: absolute; left: -999px; }
+</style>
+</head>
+<body>
+<span class="fontprobe">READY? WALLOP! KNOCKOUT HP</span>
+<canvas id="game" width="1280" height="720"></canvas>
+<img id="page0" src="assets/atlas/page0.png"><img id="page1" src="assets/atlas/page1.png"><img id="page2" src="assets/atlas/page2.png">
+<img id="page3" src="assets/atlas/page3.png"><img id="page4" src="assets/atlas/page4.png"><img id="page5" src="assets/atlas/page5.png">
+<script>
+  // Test harness (used with the local shot server):
+  //   test.html#shots=5,20,45&mode=normal&hitbox=1&seed=3&tag=n
+  // simulates the fight with a simple bot and posts a PNG of the canvas at each requested time.
+  window.__TEST = Object.fromEntries(location.hash.slice(1).split("&").filter(Boolean).map((kv) => kv.split("=")));
+</script>
+<script src="game.js"></script>
+<script>
+  const post = (name, body) => fetch("/save?name=" + encodeURIComponent(name), { method: "POST", body });
+  addEventListener("load", async () => {
+    const T = window.__TEST, G = window.__goopy, tag = T.tag || "shot";
+    try {
+      await document.fonts.load('40px "CupheadVogue"');
+      const xhr = new XMLHttpRequest(); xhr.open("GET", "assets/assets.json", false); xhr.send();
+      G.initSync(JSON.parse(xhr.responseText));
+      let s = +(T.seed || 3); Math.random = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+      const cv = document.getElementById("game");
+      if (T.title) { G.title(); await post(tag + "_title", cv.toDataURL("image/png")); }
+      const L = new G.Level(T.mode || "normal");
+      G.setHitboxes(T.hitbox === "1");
+      if (T.invuln !== "0") L.player.takeDamage = function () {};
+      const times = (T.shots || "").split(",").filter(Boolean).map(Number);
+      // when=<regex on any boss animation>&after=<seconds>: shoot once the animation starts
+      if (T.when) times.push(9999);
+      const re = T.when ? new RegExp(decodeURIComponent(T.when)) : null;
+      let t = 0, hitAt = -1; const log = [];
+      for (const until of times) {
+        while (t < until) {
+          if (re) {
+            const names = [L.small.active && L.small.anim.name, L.big.active && L.big.anim.name, L.tomb.active && L.tomb.anim.name].filter(Boolean).join(" ");
+            if (hitAt < 0 && re.test(names)) hitAt = t;
+            if (hitAt >= 0 && t >= hitAt + +(T.after || 0)) break;
+            if (t > 400) break;
+          }
+          const boss = L.tomb.active ? L.tomb : (L.big.active ? L.big : L.small);
+          const k = G.keys; k.shoot = true; k.up = L.tomb.active; k.left = k.right = false;
+          const dx = boss.x - L.player.x;
+          if (Math.abs(dx) < 260) { if (dx > 0) k.left = true; else k.right = true; }
+          else if (L.player.facing !== Math.sign(dx) || (L.tomb.active && Math.abs(dx) > 420)) { if (dx > 0) k.right = true; else k.left = true; }
+          if (T.jump && Math.floor(t * 60) % 90 === 0) G.pressed.jump = true;
+          L.fixedUpdate(G.FIXED); t += G.FIXED;
+          for (const key in G.pressed) delete G.pressed[key];
+        }
+        G.render(L);
+        const s1 = L.small.active ? L.small.anim.name : "", s2 = L.big.active ? L.big.anim.name : "", s3 = L.tomb.active ? L.tomb.anim.name : "";
+        log.push(`t=${t.toFixed(2)} state=${L.state.name} hp=${L.health} small=${s1} big=${s2} tomb=${s3} player=${L.player.anim.name}`);
+        await post(`${tag}_${String(until).padStart(5, "0")}`, cv.toDataURL("image/png"));
+      }
+      await post(tag + "_log", log.join("\n") || "ok");
+    } catch (e) {
+      await post(tag + "_log", "ERRORE: " + (e.stack || e));
+    }
+  });
+</script>
+</body>
+</html>

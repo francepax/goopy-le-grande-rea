@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Goopy Le Grande — ricostruzione</title>
+<style>
+  @font-face { font-family: "CupheadVogue"; src: url("assets/fonts/CupheadVogue_ExtraBold_merged.ttf") format("truetype"); }
+  html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { background: #000; image-rendering: auto; max-width: 100vw; max-height: 100vh; aspect-ratio: 16 / 9; width: 100vw; height: auto; }
+  @media (min-aspect-ratio: 16/9) { canvas { width: auto; height: 100vh; } }
+</style>
+</head>
+<body>
+<canvas id="game" width="1280" height="720"></canvas>
+<script src="game.js"></script>
+</body>
+</html>
