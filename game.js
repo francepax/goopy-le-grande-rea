@@ -260,9 +260,9 @@ function pollGamepad() {
 // ---------------------------------------------------------------- effects
 class Effect {
   constructor(anim, x, y, flip = false, opts = {}) {
-    this.anim = new Animator(null); this.anim.play(anim); this.x = x; this.y = y; this.flip = flip; this.opts = opts; this.dead = false;
+    this.anim = new Animator(null); this.anim.play(anim); this.x = x; this.y = y; this.flip = flip; this.opts = opts; this.dead = !this.anim.a;
   }
-  update(dt) { this.anim.update(dt); if (this.anim.done || (this.anim.a.loop && this.anim.t + dt >= this.anim.total)) this.dead = true; }
+  update(dt) { this.anim.update(dt); if (!this.anim.a || this.anim.done || (this.anim.a.loop && this.anim.t + dt >= this.anim.total)) this.dead = true; }
   draw() { const f = this.anim.frame(); if (f) drawSprite(f, this.x, this.y, this.flip, this.opts); }
 }
 

@@ -18,7 +18,7 @@ CLIP_RULES = [
                              r"|^anim_hud_health_|^anim_hud_card_cuphead_idle_a$"),
 ]
 CLIP_EXCLUDE = re.compile(r"chalice|plane|mugman|_tutorial", re.I)
-BUNDLES = ["atlas_slimelevel", "atlas_player", "atlas_playerfx", "atlas_forest_common", "atlas_world_1_common"]
+BUNDLES = ["atlas_slimelevel", "atlas_player", "atlas_playerfx", "atlas_jumpdust", "atlas_forest_common", "atlas_world_1_common"]
 
 
 def f32(u):
